@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'api_service.dart';
+import 'sensor_data.dart';
 
 void main() {
   runApp(const TamagotchiApp());
@@ -21,8 +24,41 @@ class TamagotchiApp extends StatelessWidget {
   }
 }
 
-class TamagotchiDashboard extends StatelessWidget {
+class TamagotchiDashboard extends StatefulWidget {
   const TamagotchiDashboard({super.key});
+
+  @override
+  State<TamagotchiDashboard> createState() => _TamagotchiDashboardState();
+}
+
+class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
+  final ApiService _apiService = ApiService();
+  SensorData? _sensorData;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _fetchData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    final data = await _apiService.fetchLatestSensorData();
+    if (mounted) {
+      setState(() {
+        _sensorData = data;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,8 +164,35 @@ class TamagotchiDashboard extends StatelessWidget {
                                 Positioned.fill(
                                   child: CustomPaint(painter: CheckerboardPainter()),
                                 ),
-                                Center(
-                                  child: AnimatedPixelCharacter(),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    AnimatedPixelCharacter(),
+                                    const SizedBox(height: 10),
+                                    if (_sensorData != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.8),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.pink.shade200),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              '${_sensorData!.temperature.toStringAsFixed(1)}°C | ${_sensorData!.humidity}% Hum',
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                            ),
+                                            Text(
+                                              'Light: ${_sensorData!.light} | pH: ${_sensorData!.soilPH.toStringAsFixed(1)}',
+                                              style: const TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      const CircularProgressIndicator(strokeWidth: 2),
+                                  ],
                                 ),
                               ],
                             ),

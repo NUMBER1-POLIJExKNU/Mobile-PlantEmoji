@@ -1,0 +1,2 @@
+0 Safe Environment
+1 Foreign Environment

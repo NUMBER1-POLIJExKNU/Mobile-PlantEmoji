@@ -4,12 +4,38 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-void main() {
+final AudioManager audioManager = AudioManager();
+
+class AudioManager {
+  final AudioPlayer _player = AudioPlayer();
+  final ValueNotifier<bool> muted = ValueNotifier<bool>(false);
+
+  Future<void> init() async {
+    try {
+      await _player.setReleaseMode(ReleaseMode.loop);
+      await _player.setSource(AssetSource('music/backsound-smartfarm.mp3'));
+      await _player.setVolume(1.0);
+      await _player.resume();
+    } catch (_) {
+      // Ignore audio initialization failures.
+    }
+  }
+
+  Future<void> toggleMute() async {
+    final shouldMute = !muted.value;
+    muted.value = shouldMute;
+    await _player.setVolume(shouldMute ? 0.0 : 1.0);
+  }
+}
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await audioManager.init();
   runApp(const TamagotchiApp());
 }
 
@@ -149,6 +175,52 @@ class TamagotchiBackground extends StatelessWidget {
             child: Image.asset('assets/design/love.png', width: 74, height: 74),
           ),
         ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: audioManager.muted,
+            builder: (context, isMuted, child) {
+              return GestureDetector(
+                onTap: audioManager.toggleMute,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.92),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.pink.shade200, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Image.asset('assets/music/music-logo.png', width: 42, height: 42),
+                      if (isMuted)
+                        Transform.rotate(
+                          angle: -0.4,
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withOpacity(0.95),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
         child,
       ],
     );
@@ -268,8 +340,8 @@ class _FooterIconButtonState extends State<FooterIconButton> {
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          width: 76,
-          height: 76,
+          width: 68,
+          height: 68,
           curve: Curves.easeOut,
           transform: Matrix4.identity()
             ..scaleByDouble(

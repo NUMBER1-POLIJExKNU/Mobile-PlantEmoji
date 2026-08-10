@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   image: ^4.9.1
   tflite_flutter: ^0.12.1
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ flutter:
     - assets/logo/
     - assets/design/
     - assets/models/
+    - assets/music/
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

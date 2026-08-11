@@ -35,19 +35,35 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
   final ApiService _apiService = ApiService();
   SensorData? _sensorData;
   Timer? _timer;
-
+  Timer? _clockTimer;   
+  bool _isDay = true;
   @override
   void initState() {
     super.initState();
+    _updateTimeOfDay();
     _fetchData();
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       _fetchData();
     });
+    _clockTimer = Timer.periodic(const Duration(seconds: 30), (timer) {  
+      _updateTimeOfDay();                                                
+    });
+  }
+
+  void _updateTimeOfDay() {
+    final hour = DateTime.now().hour;
+    final isDayNow = hour >= 6 && hour < 18;
+    if (isDayNow != _isDay) {
+      setState(() {
+        _isDay = isDayNow;
+      });
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _clockTimer?.cancel();
     super.dispose();
   }
 
@@ -63,36 +79,18 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDE4F2), // Light background for contrast
+      // backgroundColor: const Color(0xFFFDE4F2), // Light background for contrast <-- i will delete this
       body: SafeArea(
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Positioned(
-              top: 16,
-              left: 16,
-              child: Opacity(
-                opacity: 0.85,
-                child: Image.asset('assets/design/cloud1.png', width: 96, height: 96),
-              ),
-            ),
-            Positioned(
-              top: 20,
-              right: 22,
-              child: Opacity(
-                opacity: 0.85,
-                child: Image.asset('assets/design/butterfly.png', width: 88, height: 88),
-              ),
-            ),
-            Positioned(
-              bottom: 20,
-              right: 34,
-              child: Opacity(
-                opacity: 0.85,
-                child: Image.asset('assets/design/love.png', width: 74, height: 74),
-              ),
-            ),
-            Center(
+            Image.asset(
+                  _isDay
+                ? 'assets/background/sunny_background.png'
+                : 'assets/background/night_background.png',
+                fit: BoxFit.cover,
+                ),
+             Center(
               child: AspectRatio(
                 aspectRatio: 1.0, // Square like the reference screen
                 child: Container(
@@ -143,13 +141,7 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
                                 ),
                                 const Center(
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Icon(Icons.restaurant, size: 36, color: Colors.black87),
-                                      Icon(Icons.lightbulb_outline, size: 36, color: Colors.black87),
-                                      Icon(Icons.sports_baseball, size: 36, color: Colors.black87),
-                                      Icon(Icons.vaccines, size: 36, color: Colors.black87),
-                                    ],
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly
                                   ),
                                 ),
                               ],
@@ -223,7 +215,7 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
                                       FooterIconButton(
                                         assetPath: 'assets/logo/inventory.png',
                                         tooltip: 'Inventory',
-                                        page: const FooterPage(title: 'Inventory'),
+                                        page: const FooterPage(title: 'Collection'),
                                       ),
                                       FooterIconButton(
                                         assetPath: 'assets/logo/chara.png',
@@ -489,26 +481,8 @@ class DottedYellowPainter extends CustomPainter {
       }
     }
     
-    // Faint flower decorations
-    Paint pink = Paint()..color = const Color(0xFFF9B8CE).withOpacity(0.85);
-    Paint blue = Paint()..color = const Color(0xFF9FDBF0).withOpacity(0.85);
-    
-    if (reverseFlowers) {
-      _drawFlower(canvas, Offset(size.width * 0.25, size.height / 2), pink);
-      _drawFlower(canvas, Offset(size.width * 0.75, size.height / 2), blue);
-    } else {
-      _drawFlower(canvas, Offset(size.width * 0.25, size.height / 2), blue);
-      _drawFlower(canvas, Offset(size.width * 0.75, size.height / 2), pink);
-    }
   }
   
-  void _drawFlower(Canvas canvas, Offset center, Paint paint) {
-    canvas.drawCircle(center + const Offset(-9, -9), 11, paint);
-    canvas.drawCircle(center + const Offset(9, -9), 11, paint);
-    canvas.drawCircle(center + const Offset(-9, 9), 11, paint);
-    canvas.drawCircle(center + const Offset(9, 9), 11, paint);
-    canvas.drawCircle(center, 14, paint); // center
-  }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;

@@ -136,18 +136,10 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
                           ),
                           Column(
                             children: [
-                              // TOP BAR
+                              // TOP BAR (Empty)
                               const Expanded(
                                 flex: 2,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Icon(Icons.restaurant, size: 36, color: Colors.black87),
-                                    Icon(Icons.lightbulb_outline, size: 36, color: Colors.black87),
-                                    Icon(Icons.sports_baseball, size: 36, color: Colors.black87),
-                                    Icon(Icons.vaccines, size: 36, color: Colors.black87),
-                                  ],
-                                ),
+                                child: SizedBox.shrink(),
                               ),
 
                               // MIDDLE AREA (Jamkachu)

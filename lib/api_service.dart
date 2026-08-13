@@ -1,93 +1,103 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'sensor_data.dart';
 import 'diary_entry.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://main-plant-moji-henna.vercel.app';
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+  static const String plantId = 'plant-01';
 
-  // Supabase Config - REPLACE WITH YOUR ACTUAL VALUES
-  static const String supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
-  static const String supabaseKey = 'YOUR_ANON_KEY';
-
-  final _supabase = Supabase.instance.client;
+  Uri _apiUri(String path, [Map<String, String>? queryParameters]) {
+    final base = _configuredBaseUrl.isEmpty
+        ? Uri.base
+        : Uri.parse(_configuredBaseUrl);
+    return base.resolve(path).replace(queryParameters: queryParameters);
+  }
 
   Future<SensorData?> fetchLatestSensorData() async {
     try {
-      // Direct Supabase Query
-      final data = await _supabase
-          .from('sensor_readings')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(1)
-          .single();
+      final response = await http.get(
+        _apiUri('/api/sensor-history', {'plantId': plantId}),
+      );
 
-      if (data != null) {
-        return SensorData.fromJson(data);
-      }
-    } catch (e) {
-      print('Error fetching from Supabase: $e');
-
-      // Fallback to Vercel API if Supabase fails or is not configured
-      return _fetchFromVercel();
-    }
-    return null;
-  }
-
-  Future<SensorData?> _fetchFromVercel() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/api/sensor-history'));
       if (response.statusCode == 200) {
         final dynamic decoded = json.decode(response.body);
         if (decoded is List && decoded.isNotEmpty) {
           return SensorData.fromJson(decoded.last);
         }
+        if (decoded is Map<String, dynamic>) {
+          if (decoded['latest'] != null) {
+            return SensorData.fromJson(decoded['latest']);
+          }
+          return SensorData.fromJson(decoded);
+        }
       }
     } catch (e) {
-      print('Vercel Fallback Error: $e');
+      print('Error fetching sensor data: $e');
     }
     return null;
   }
 
-  // --- Diary API ---
-  
   Future<List<DiaryEntry>> fetchDiaryEntries() async {
     try {
-      final data = await _supabase
-          .from('growth_records')
-          .select()
-          .order('created_at', ascending: false);
-
-      return (data as List).map((e) => DiaryEntry.fromJson(e)).toList();
+      final response = await http.get(
+        _apiUri('/api/diary-history', {'plantId': plantId, 'limit': '20'}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List<dynamic>;
+        return data.map((entry) => DiaryEntry.fromJson(entry)).toList();
+      }
     } catch (e) {
-      print('Supabase Diary Error: $e');
-      return [];
+      print('Error fetching diary: $e');
     }
+    return [];
   }
 
   Future<bool> saveDiaryEntry(DiaryEntry entry) async {
     try {
-      await _supabase.from('growth_records').insert(entry.toJson());
-      return true;
+      final response = await http.post(
+        _apiUri('/api/diary-add'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'plantId': plantId, 'note': entry.quote}),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print('Supabase Save Error: $e');
-      return false;
+      print('Error saving diary entry: $e');
     }
+    return false;
   }
 
-  // --- Collection API ---
-
-  Future<List<String>> fetchUnlockedCollectionIds() async {
+  Future<CollectionProgress?> fetchCollectionProgress() async {
     try {
-      final data = await _supabase
-          .from('unlocked_collection')
-          .select('item_id');
-
-      return (data as List).map((e) => e['item_id'].toString()).toList();
+      final response = await http.get(
+        _apiUri('/api/collection-unlocked', {'plantId': plantId}),
+      );
+      if (response.statusCode == 200) {
+        final dynamic decoded = json.decode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return CollectionProgress.fromJson(decoded);
+        }
+      }
     } catch (e) {
-      print('Supabase Collection Error: $e');
-      return [];
+      print('Error fetching collection status: $e');
     }
+    return null;
+  }
+}
+
+class CollectionProgress {
+  final List<String> unlockedIds;
+  final int level;
+
+  const CollectionProgress({required this.unlockedIds, required this.level});
+
+  factory CollectionProgress.fromJson(Map<String, dynamic> json) {
+    final ids = json['unlockedIds'];
+    return CollectionProgress(
+      unlockedIds: ids is List ? ids.map((id) => id.toString()).toList() : [],
+      level: (json['level'] as num?)?.toInt() ?? 1,
+    );
   }
 }

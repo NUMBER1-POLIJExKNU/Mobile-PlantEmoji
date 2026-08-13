@@ -81,15 +81,17 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
     if (mounted) {
       setState(() {
         _diaryEntries = entries;
-        _updatePlantLevel();
       });
     }
   }
 
   Future<void> _loadUnlockedCollections() async {
-    final ids = await _apiService.fetchUnlockedCollectionIds();
-    if (mounted && ids.isNotEmpty) {
-      setState(() => _unlockedIds = ids);
+    final progress = await _apiService.fetchCollectionProgress();
+    if (mounted && progress != null) {
+      setState(() {
+        _unlockedIds = progress.unlockedIds;
+        _plantLevel = progress.level;
+      });
     }
   }
 
@@ -168,12 +170,6 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
       return 'assets/plant/plant_flower.png';
     } else {
       return 'assets/plant/plant_harvest_time.png';
-    }
-  }
-
-  void _updatePlantLevel() {
-    if (_diaryEntries.isNotEmpty) {
-      _plantLevel = _diaryEntries.length + 1; // Level increases with diary entries
     }
   }
 

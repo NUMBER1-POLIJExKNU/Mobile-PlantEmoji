@@ -54,6 +54,7 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
     _fetchInitialData();
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       _fetchData();
+      _loadUnlockedCollections();
     });
     _clockTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _updateTimeOfDay();
@@ -106,7 +107,7 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
 
   Future<void> _fetchData() async {
     final data = await _apiService.fetchLatestSensorData();
-    if (mounted) {
+    if (mounted && data != null) {
       setState(() {
         _sensorData = data;
         _updateDialogue();
@@ -362,7 +363,10 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
     switch (_mode) {
       case _ScreenMode.garden:
         title = 'My Garden';
-        content = _GardenScreenContent(sensorData: _sensorData);
+        content = _GardenScreenContent(
+          sensorData: _sensorData,
+          bondLevel: _plantLevel,
+        );
         break;
       case _ScreenMode.camera:
         title = 'Camera';
@@ -424,9 +428,9 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
 // --- GARDEN MONITORING ---
 class _GardenScreenContent extends StatelessWidget {
   final SensorData? sensorData;
-  const _GardenScreenContent({required this.sensorData});
+  final int bondLevel;
+  const _GardenScreenContent({required this.sensorData, required this.bondLevel});
 
-  static const _dummyBondLevel = 4;
   static const _dummyHp = 0.72;
   static const _dummyXp = 128;
   static const _dummyDays = 12;
@@ -445,7 +449,7 @@ class _GardenScreenContent extends StatelessWidget {
           _SectionLabel(text: 'JAMKACHU STATUS'),
           const SizedBox(height: 6),
           _StatusJamkachuCard(
-            bondLevel: _dummyBondLevel,
+            bondLevel: bondLevel,
             hp: _dummyHp,
             xp: _dummyXp,
             days: _dummyDays,

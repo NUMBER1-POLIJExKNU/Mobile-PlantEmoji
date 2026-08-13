@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'api_service.dart';
+import 'camera_screen.dart';
 import 'sensor_data.dart';
 import 'diary_entry.dart';
 
@@ -46,6 +47,8 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
   String _dialogue = "Happy to see you!";
   _ScreenMode _mode = _ScreenMode.dashboard;
   int _plantLevel = 1; // Track plant growth level (1-5: seed, 6-10: babby, 11-15: flower, 16+: harvest)
+  int _totalXp = 0;
+  int _currentStreak = 0;
 
   @override
   void initState() {
@@ -84,6 +87,8 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
       setState(() {
         _unlockedIds = progress.unlockedIds;
         _plantLevel = progress.level;
+        _totalXp = progress.totalXp;
+        _currentStreak = progress.currentStreak;
       });
     }
   }
@@ -366,11 +371,13 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
         content = _GardenScreenContent(
           sensorData: _sensorData,
           bondLevel: _plantLevel,
+          totalXp: _totalXp,
+          currentStreak: _currentStreak,
         );
         break;
       case _ScreenMode.camera:
         title = 'Camera';
-        content = const _PlaceholderScreenContent(assetPath: 'assets/logo/camera.png', label: 'Camera feature coming soon');
+        content = CameraScreen(apiService: _apiService);
         break;
       case _ScreenMode.collection:
         title = 'Collection';
@@ -429,11 +436,16 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
 class _GardenScreenContent extends StatelessWidget {
   final SensorData? sensorData;
   final int bondLevel;
-  const _GardenScreenContent({required this.sensorData, required this.bondLevel});
+  final int totalXp;
+  final int currentStreak;
+  const _GardenScreenContent({
+    required this.sensorData,
+    required this.bondLevel,
+    required this.totalXp,
+    required this.currentStreak,
+  });
 
   static const _dummyHp = 0.72;
-  static const _dummyXp = 128;
-  static const _dummyDays = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -451,8 +463,8 @@ class _GardenScreenContent extends StatelessWidget {
           _StatusJamkachuCard(
             bondLevel: bondLevel,
             hp: _dummyHp,
-            xp: _dummyXp,
-            days: _dummyDays,
+            xp: totalXp,
+            days: currentStreak,
           ),
           const SizedBox(height: 14),
           _SectionLabel(text: 'GARDEN CONDITIONS'),

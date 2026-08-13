@@ -6,9 +6,13 @@ void main() {
     final progress = CollectionProgress.fromJson({
       'unlockedIds': ['comfort', 'badge_1', 'story_1'],
       'level': 27,
+      'totalXp': 390,
+      'currentStreak': 7,
     });
 
     expect(progress.unlockedIds, ['comfort', 'badge_1', 'story_1']);
     expect(progress.level, 27);
+    expect(progress.totalXp, 390);
+    expect(progress.currentStreak, 7);
   });
 }

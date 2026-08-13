@@ -1,11 +1,19 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'api_service.dart';
 import 'sensor_data.dart';
 import 'diary_entry.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: ApiService.supabaseUrl,
+    anonKey: ApiService.supabaseKey,
+  );
+
   runApp(const TamagotchiApp());
 }
 

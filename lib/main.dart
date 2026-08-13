@@ -211,7 +211,7 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
                     border: Border.all(color: const Color(0xFFD04A7B), width: 8),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 25,
                         offset: const Offset(0, 10),
                       ),
@@ -268,11 +268,11 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black.withOpacity(0.05)),
+                      border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5),
                       ],
                     ),
                     child: Text(
@@ -305,7 +305,7 @@ class _TamagotchiDashboardState extends State<TamagotchiDashboard> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3E96B),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.black.withOpacity(0.1)),
+                        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
                       ),
                       child: const Text(
                         'BEST FRIEND',
@@ -587,29 +587,21 @@ class _GardenVitalsCard extends StatelessWidget {
         mainAxisSpacing: 10,
         childAspectRatio: 1.5,
         children: [
-          _VitalTile(icon: Icons.thermostat, color: Colors.orange, label: 'TEMP', value: temp),
-          _VitalTile(icon: Icons.water_drop, color: Colors.blue, label: 'AIR', value: humidity),
-          _VitalTile(icon: Icons.wb_sunny, color: Colors.amber, label: 'LIGHT', value: light),
-          _VitalTile(icon: Icons.science, color: Colors.brown, label: 'SOIL', value: soil),
+          _buildVitalTile(icon: Icons.thermostat, color: Colors.orange, label: 'TEMP', value: temp),
+          _buildVitalTile(icon: Icons.water_drop, color: Colors.blue, label: 'AIR', value: humidity),
+          _buildVitalTile(icon: Icons.wb_sunny, color: Colors.amber, label: 'LIGHT', value: light),
+          _buildVitalTile(icon: Icons.science, color: Colors.brown, label: 'SOIL', value: soil),
         ],
       ),
     );
   }
-}
 
-class _VitalTile extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final String value;
-  const _VitalTile({required this.icon, required this.color, required this.label, required this.value});
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildVitalTile({required IconData icon, required Color color, required String label, required String value}) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.06),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -1134,7 +1126,13 @@ class JamkachuInnerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Rect rect = Rect.fromLTWH(0, 0, size.width, size.height);
     canvas.drawRect(rect, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: isDay ? [const Color(0xFFE1F5FE), const Color(0xFFFFFFFF)] : [const Color(0xFF0D1B2A), const Color(0xFF1B263B)]).createShader(rect));
-    final Paint dot = Paint()..color = Colors.grey.withOpacity(isDay ? 0.2 : 0.12);
+    final Paint sunGlow = Paint()
+      ..color = const Color(0xFFFFF176).withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.2), 60, sunGlow);
+    final Paint sunCore = Paint()..color = const Color(0xFFFFF176).withValues(alpha: 0.5);
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.2), 30, sunCore);
+    final Paint dot = Paint()..color = Colors.grey.withValues(alpha: isDay ? 0.2 : 0.12);
     for (double x = 0; x < size.width; x += size.width / 10) { for (double y = 0; y < size.height; y += size.width / 10) { canvas.drawCircle(Offset(x, y), 1.5, dot); } }
     final double gh = size.height * 0.22;
     canvas.drawRect(Rect.fromLTWH(0, size.height - gh, size.width, gh), Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: isDay ? [const Color(0xFF8BC34A), const Color(0xFF689F38)] : [const Color(0xFF33691E), const Color(0xFF1B5E20)]).createShader(Rect.fromLTWH(0, size.height - gh, size.width, gh)));

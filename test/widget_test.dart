@@ -11,7 +11,7 @@ import 'package:mobile_smartfarm/main.dart';
 
 void main() {
   testWidgets('shows Tamagotchi dashboard', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const TamagotchiApp());
 
     expect(find.byType(TamagotchiDashboard), findsOneWidget);
     expect(find.byTooltip('Camera'), findsOneWidget);

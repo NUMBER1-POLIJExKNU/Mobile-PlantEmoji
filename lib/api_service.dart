@@ -4,7 +4,7 @@ import 'sensor_data.dart';
 import 'diary_entry.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://main-plant-moji.vercel.app';
+  static const String baseUrl = 'https://main-plant-moji-henna.vercel.app';
 
   Future<SensorData?> fetchLatestSensorData() async {
     try {
